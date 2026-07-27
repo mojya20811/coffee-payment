@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayPay URL 管理</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#fdf1de}
+  .wrap{max-width:440px;margin:0 auto;padding:32px 24px}
+  h1{font-size:20px;color:#5c3a22}
+  p.help{font-size:12.5px;color:#8a6748;line-height:1.6}
+  label{display:block;font-size:13px;font-weight:700;color:#8a6748;margin:18px 0 6px}
+  input{width:100%;box-sizing:border-box;padding:12px 14px;border:2px solid #f0d9b8;border-radius:10px;font-size:15px}
+  button{margin-top:24px;width:100%;padding:14px;border:0;border-radius:12px;background:#ff0033;color:#fff;font-weight:800;font-size:16px}
+  .msg{margin-top:14px;font-size:13px}
+  .ok{color:#2a7d3c}
+  .err{color:#b3261e}
+  details{margin-top:24px;font-size:12.5px;color:#8a6748}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PayPay URL 更新</h1>
+  <p class="help">初回のみ、下の「アクセストークン」欄にGitHubの個人用アクセストークンを入力してください(次回以降はこの端末に保存され不要です)。</p>
+
+  <label>30円(レギュラー)URL</label>
+  <input id="url30" placeholder="https://pay.paypay.ne.jp/xxxxxxxx">
+  <label>50円(ラージ)URL</label>
+  <input id="url50" placeholder="https://pay.paypay.ne.jp/yyyyyyyy">
+
+  <label>GitHubアクセストークン</label>
+  <input id="token" type="password" placeholder="ghp_...">
+
+  <button onclick="save()">保存する</button>
+  <div id="msg" class="msg"></div>
+
+  <details>
+    <summary>アクセストークンの作り方(初回のみ)</summary>
+    <p>1. GitHub → 右上アイコン → Settings → 一番下 Developer settings<br>
+    2. Personal access tokens → Fine-grained tokens → Generate new token<br>
+    3. Repository access で「coffee-payment」のみ選択<br>
+    4. Permissions → Contents を「Read and write」に設定<br>
+    5. 発行されたトークン(ghp_で始まる文字列)をコピーし、上の欄に貼り付け</p>
+  </details>
+</div>
+<script>
+var OWNER = 'mojya20811';
+var REPO = 'coffee-payment';
+var FILE_PATH = 'config.json';
+var API_URL = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + FILE_PATH;
+
+var tokenInput = document.getElementById('token');
+var saved = localStorage.getItem('gh_token');
+if (saved) tokenInput.value = saved;
+
+function b64EncodeUnicode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+
+function loadCurrent() {
+  fetch(API_URL + '?t=' + Date.now(), { cache: 'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var content = JSON.parse(b64DecodeUnicode(data.content));
+      document.getElementById('url30').value = content.url30 || '';
+      document.getElementById('url50').value = content.url50 || '';
+    })
+    .catch(function(){});
+}
+loadCurrent();
+
+function save() {
+  var token = tokenInput.value.trim();
+  var msg = document.getElementById('msg');
+  if (!token) {
+    msg.textContent = 'アクセストークンを入力してください';
+    msg.className = 'msg err';
+    return;
+  }
+  localStorage.setItem('gh_token', token);
+  msg.textContent = '保存中...';
+  msg.className = 'msg';
+
+  fetch(API_URL, { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' })
+    .then(function(r){
+      if (!r.ok) throw new Error('現在のファイル取得に失敗 (' + r.status + ')');
+      return r.json();
+    })
+    .then(function(current){
+      var newContent = JSON.stringify({
+        url30: document.getElementById('url30').value.trim(),
+        url50: document.getElementById('url50').value.trim(),
+        imageUrl: JSON.parse(b64DecodeUnicode(current.content)).imageUrl || ''
+      }, null, 2);
+
+      return fetch(API_URL, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'update paypay urls',
+          content: b64EncodeUnicode(newContent),
+          sha: current.sha
+        })
+      });
+    })
+    .then(function(r){
+      if (!r.ok) return r.json().then(function(e){ throw new Error(e.message || ('保存失敗 ' + r.status)); });
+      msg.textContent = '保存しました！反映まで数十秒お待ちください。';
+      msg.className = 'msg ok';
+    })
+    .catch(function(err){
+      msg.textContent = 'エラー: ' + err.message;
+      msg.className = 'msg err';
+    });
+}
+</script>
+</body>
+</html>
