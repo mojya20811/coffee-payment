@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コーヒー支払い</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>body{margin:0}a{color:inherit}</style>
+</head>
+<body>
+<div style="min-height:100vh;width:100%;max-width:520px;margin:0 auto;background:linear-gradient(180deg,#fff8ee 0%,#fdf1de 55%,#f8e6c8 100%);font-family:'Zen Maru Gothic','Nunito',sans-serif;display:flex;flex-direction:column;align-items:center;padding:36px 24px 48px;box-sizing:border-box;position:relative;overflow:hidden">
+
+  <div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,#f3caa0 0%,rgba(243,202,160,0) 70%)"></div>
+  <div style="position:absolute;bottom:-80px;left:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,#e8b88a 0%,rgba(232,184,138,0) 70%)"></div>
+
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:8px">
+    <div style="font-size:13px;font-weight:800;letter-spacing:.08em;color:#a9673a;background:#fff2de;padding:6px 16px;border-radius:999px;border:1px solid #eecfa2">社内コーヒーコーナー</div>
+    <h1 style="margin:6px 0 0;font-size:30px;font-weight:900;color:#5c3a22;text-align:center;line-height:1.3">ネスカフェバリスタ<br>PayPayでお支払い</h1>
+    <p style="margin:0;font-size:15px;color:#8a6748;font-weight:600;text-align:center">下のボタンをタップ → PayPayアプリで支払い完了！</p>
+  </div>
+
+  <div id="imgWrap" style="position:relative;z-index:1;width:230px;height:290px;margin:6px 0 18px;display:none">
+    <img id="mascotImg" style="width:230px;height:290px;object-fit:contain;display:block">
+  </div>
+
+  <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;gap:16px">
+
+    <a id="link30" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:14px;background:#ffffff;border:2px solid #f0d9b8;border-radius:20px;padding:20px 22px;box-shadow:0 6px 18px rgba(150,100,50,.1)">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:13px;font-weight:700;color:#b8783f">レギュラーサイズ</span>
+        <span style="font-size:34px;font-weight:900;color:#5c3a22;line-height:1">30<span style="font-size:17px;font-weight:800">円</span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:#ff0033;color:#fff;font-weight:800;font-size:15px;padding:12px 20px;border-radius:14px;white-space:nowrap">
+        PayPayで払う<span style="font-size:18px">→</span>
+      </div>
+    </a>
+
+    <a id="link50" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:14px;background:#ffffff;border:2px solid #f0d9b8;border-radius:20px;padding:20px 22px;box-shadow:0 6px 18px rgba(150,100,50,.1)">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:13px;font-weight:700;color:#b8783f">ラージサイズ</span>
+        <span style="font-size:34px;font-weight:900;color:#5c3a22;line-height:1">50<span style="font-size:17px;font-weight:800">円</span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:#ff0033;color:#fff;font-weight:800;font-size:15px;padding:12px 20px;border-radius:14px;white-space:nowrap">
+        PayPayで払う<span style="font-size:18px">→</span>
+      </div>
+    </a>
+
+  </div>
+
+  <p style="position:relative;z-index:1;margin:26px 0 0;font-size:12.5px;color:#a3805e;text-align:center;line-height:1.7">もしコードでエラーが出たら<br>望月までご連絡ください。</p>
+
+</div>
+<script>
+fetch('./config.json?t=' + Date.now())
+  .then(function(r){ return r.json(); })
+  .then(function(cfg){
+    document.getElementById('link30').href = cfg.url30;
+    document.getElementById('link50').href = cfg.url50;
+    if (cfg.imageUrl) {
+      document.getElementById('mascotImg').src = cfg.imageUrl;
+      document.getElementById('imgWrap').style.display = 'block';
+    }
+  })
+  .catch(function(){});
+</script>
+</body>
+</html>
